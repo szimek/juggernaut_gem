@@ -119,8 +119,8 @@ class TestServer < Test::Unit::TestCase
     end
   end
 
-  # Assert that the DirectClient has an awaiting message with +body+.
-  def assert_body(data, subscriber)
+  # Assert that the DirectClient has an awaiting message with +data+.
+  def assert_data(data, subscriber)
     assert_response subscriber do |result|
       assert_respond_to result, :[]
       assert_equal data, result["data"]
@@ -128,7 +128,7 @@ class TestServer < Test::Unit::TestCase
   end
 
   # Assert that the DirectClient has no awaiting message.
-  def assert_no_body(subscriber)
+  def assert_no_data(subscriber)
     assert_response subscriber do |result|
       assert_equal false, result
     end
@@ -254,26 +254,26 @@ class TestServer < Test::Unit::TestCase
 
     context "channel-wide broadcast" do
 
-      body = "This is a channel-wide broadcast test!"
+      data = "This is a channel-wide broadcast test!"
 
       should "be received by client in the same channel" do
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_channel") { |c| c.subscribe %w(master) }
-          self.new_client { |c| c.broadcast_to_channels %w(master), body }
+          self.new_client { |c| c.broadcast_to_channels %w(master), data }
         end
         assert_not_nil subscriber
         result = subscriber.receive
         subscriber.close
         assert_respond_to result, :[]
-        assert_equal body, result["data"]
+        assert_equal data, result["data"]
       end
 
       should "not be received by client not in a channel" do
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_channel") { |c| c.subscribe %w() }
-          self.new_client { |c| c.broadcast_to_channels %w(master), body }
+          self.new_client { |c| c.broadcast_to_channels %w(master), data }
         end
         assert_no_response subscriber
       end
@@ -282,7 +282,7 @@ class TestServer < Test::Unit::TestCase
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_test") { |c| c.subscribe %w(slave) }
-          self.new_client { |c| c.broadcast_to_channels %w(broadcast_channel), body }
+          self.new_client { |c| c.broadcast_to_channels %w(broadcast_channel), data }
         end
         assert_no_response subscriber
       end
@@ -292,46 +292,46 @@ class TestServer < Test::Unit::TestCase
     # For some reason, these refuse to pass:
     context "broadcast with no specific channel" do
 
-      body = "This is a broadcast test!"
+      data = "This is a broadcast test!"
 
       should "be received by client not in any channels" do
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_all") { |c| c.subscribe %w() }
-          self.new_client { |c| c.broadcast_to_channels %w(), body }
+          self.new_client { |c| c.broadcast_to_channels %w(), data }
         end
-        assert_body body, subscriber
+        assert_data data, subscriber
       end
 
       should "be received by client in a channel" do
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_all") { |c| c.subscribe %w(master) }
-          self.new_client { |c| c.broadcast_to_channels %w(), body }
+          self.new_client { |c| c.broadcast_to_channels %w(), data }
         end
-        assert_body body, subscriber
+        assert_data data, subscriber
       end
 
     end
 
     context "broadcast to a client" do
 
-      body = "This is a client-specific broadcast test!"
+      data = "This is a client-specific broadcast test!"
 
       should "be received by the target client" do
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_client") { |c| c.subscribe %w() }
-          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), body }
+          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), data }
         end
-        assert_body body, subscriber
+        assert_data data, subscriber
       end
 
       should "not be received by other clients" do
         subscriber = nil
         with_server do
           subscriber = self.new_client(:client_id => "broadcast_faker") { |c| c.subscribe %w() }
-          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), body }
+          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), data }
         end
         assert_no_response subscriber
       end
@@ -340,10 +340,10 @@ class TestServer < Test::Unit::TestCase
         subscriber = nil
         with_server :store_messages => true do
           self.new_client(:client_id => "broadcast_client") { |c| c.subscribe %w() }.close
-          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), body }
+          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), data }
           subscriber = self.new_client(:client_id => "broadcast_client") { |c| c.subscribe %w() }
         end
-        assert_body body, subscriber
+        assert_data data, subscriber
       end
 
       should "only be sent to new client connection" do
@@ -352,7 +352,7 @@ class TestServer < Test::Unit::TestCase
 
         with_server :store_messages => true, :timeout => 30 do
           old_subscriber = self.new_client(:client_id => "broadcast_client", :session_id => "1") { |c| c.subscribe %w() }
-          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), body }
+          self.new_client { |c| c.broadcast_to_clients %w(broadcast_client), data }
           @connections.first.client.expects(:send_message_to_connection).times(2)
           new_subscriber = self.new_client(:client_id => "broadcast_client", :session_id => "2") { |c| c.subscribe %w() }
         end
