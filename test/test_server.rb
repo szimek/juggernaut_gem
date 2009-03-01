@@ -1,4 +1,3 @@
-
 $:.unshift "../lib"
 require "juggernaut"
 require "test/unit"
@@ -22,12 +21,12 @@ class TestServer < Test::Unit::TestCase
 
   class DirectClient
     attr_reader :channels
-    def broadcast_to_channels(channels, body)
-      self.transmit :command => :broadcast, :type => :to_channels, :channels => channels, :body => body
+    def broadcast_to_channels(channels, data)
+      self.transmit :command => :broadcast, :type => :to_channels, :channels => channels, :data => data
       self
     end
-    def broadcast_to_clients(clients, body)
-      self.transmit :command => :broadcast, :type => :to_clients, :client_ids => clients, :body => body
+    def broadcast_to_clients(clients, data)
+      self.transmit :command => :broadcast, :type => :to_clients, :client_ids => clients, :data => data
     end
     def close
       @socket.close if @socket
@@ -121,10 +120,10 @@ class TestServer < Test::Unit::TestCase
   end
 
   # Assert that the DirectClient has an awaiting message with +body+.
-  def assert_body(body, subscriber)
+  def assert_body(data, subscriber)
     assert_response subscriber do |result|
       assert_respond_to result, :[]
-      assert_equal body, result["body"]
+      assert_equal data, result["data"]
     end
   end
 
@@ -267,7 +266,7 @@ class TestServer < Test::Unit::TestCase
         result = subscriber.receive
         subscriber.close
         assert_respond_to result, :[]
-        assert_equal body, result["body"]
+        assert_equal body, result["data"]
       end
 
       should "not be received by client not in a channel" do

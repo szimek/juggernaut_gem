@@ -15,7 +15,7 @@ class TestMessage < Test::Unit::TestCase
     end
     
     should "generate valid JSON" do
-      obj = {"signature" => "a81fef13919", "body" => "A pre-determined message body", "id" => "1"}
+      obj = {"signature" => "a81fef13919", "data" => "A pre-determined message body", "id" => "1"}
       assert_nothing_raised do
         assert_equal obj, JSON.parse(@msg.to_s)
       end

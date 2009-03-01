@@ -215,12 +215,12 @@ module Juggernaut
         case @request[:type].to_sym
           when :to_channels
             # if channels is a blank array, sends to everybody!
-            broadcast_to_channels(@request[:body], @request[:channels])
+            broadcast_to_channels(@request[:data], @request[:channels])
           when :to_clients
             broadcast_needs :client_ids
             @request[:client_ids].each do |client_id|
               # if channels aren't empty, scopes broadcast to clients on those channels
-              broadcast_to_client(@request[:body], client_id, @request[:channels])
+              broadcast_to_client(@request[:data], client_id, @request[:channels])
             end
         else
           raise MalformedBroadcast, @request
@@ -305,9 +305,9 @@ module Juggernaut
         Juggernaut::Client.find_all.each {|client| client.send_message(msg, channels) }
       end
 
-      def broadcast_to_client(body, client_id, channels)
+      def broadcast_to_client(data, client_id, channels)
         client = Juggernaut::Client.find_by_id(client_id)
-        client.send_message(body, channels) if client
+        client.send_message(data, channels) if client
       end
 
       # Helper methods
