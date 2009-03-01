@@ -154,8 +154,8 @@ module Juggernaut
 
     # Connection methods
 
-    def broadcast(bdy)
-      msg = Juggernaut::Message.new(@current_msg_id += 1, bdy, self.signature)
+    def broadcast(data, channel=nil)
+      msg = Juggernaut::Message.new(@current_msg_id += 1, data, self.signature, channel)
       publish(msg)
     end
 
@@ -173,7 +173,7 @@ module Juggernaut
 
     def has_channels?(channels)
       channels.each {|channel|
-        return true if has_channel?(channel)
+        return channel if has_channel?(channel)
       }
       false
     end

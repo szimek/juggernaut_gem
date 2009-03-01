@@ -240,7 +240,11 @@ module Juggernaut
     end
 
     def send_message_to_connection(connection, msg, channels)
-      connection.broadcast(msg) if !channels or channels.empty? or connection.has_channels?(channels)
+      if !channels or channels.empty?
+        connection.broadcast(msg)
+      elsif channel = connection.has_channels?(channels)
+        connection.broadcast(msg, channel) # TODO send matched channel name
+      end
     end
 
     # Queued messages are stored until a timeout is reached which is the
