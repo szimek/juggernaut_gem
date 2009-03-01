@@ -243,7 +243,7 @@ module Juggernaut
       if !channels or channels.empty?
         connection.broadcast(msg)
       elsif channel = connection.has_channels?(channels)
-        connection.broadcast(msg, channel) # TODO send matched channel name
+        connection.broadcast(msg, channel)
       end
     end
 
